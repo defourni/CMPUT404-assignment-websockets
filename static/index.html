@@ -123,6 +123,7 @@ function getPosition(e) {
 
 function addEntity(entity, data) {
     world[entity] = data;
+    socket.send(JSON.stringify(data));
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just modified!
 }
@@ -248,11 +249,13 @@ function update() {
     drawFrame();
 }
 
-
+//from: https://github.com/uofa-cmput404/cmput404-slides/blob/master/examples/WebSocketsExamples/static/chat.html
 function wsSetup() {
     var url = "ws://"+host+"/subscribe";   
     socket = new WebSocket(url);
     socket.onopen = function() {
+        socket.send(JSON.stringify("onopen"));
+        drawNextFrame();
         //XXX: TODO What are you going to do here?
     };
     socket.onerror = function(msg) {
@@ -260,7 +263,12 @@ function wsSetup() {
     };
     socket.onmessage = function(msg) {  
         try {
-            debug("WebSocket Recv:" + msg.data);
+            var inc_world = JSON.parse(msg.data);
+            for(var key in world){
+            //debug("WebSocket Recv:" + msg.data);
+                world[key] = inc_world[key];
+            }
+            drawNextFrame();
             //XXX: TODO What are you going to do here?            
         } catch (e) {
             alert("socket on message: " + e);
